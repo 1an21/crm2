@@ -1,0 +1,79 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+
+    <div>
+        <form action="{{ path('index') }}" method="get">
+            <label for="filter">Filter node</label>
+            <input name="filter" type="text">
+            <button type="submit" class="btn btn-default btn-sm">Filter</button>
+            <a href="{{ path('all')}}" class="btn btn-default btn-sm" style="float: right">All employees</a>
+        </form>
+    </div>
+
+    {% import _self as macros %}
+
+    {% macro showChild(employee) %}
+        {% import _self as macros %}
+
+        <ol >
+
+            <li id="menuItem_{{ employee.id }}">
+                <div data-id="{{ employee.id }}" >
+                    <dl>
+                        <dt>Surname</dt><dd>{{ employee.surname }}</dd>
+                        <dt>Name</dt><dd>{{ employee.name }}</dd>
+                        <dt>Position</dt><dd>{{ employee.position }}</dd>
+                    </dl>
+                </div>
+            </li>
+            {% for child in employee.children %}
+                {{ macros.showChild(child) }}
+            {% endfor %}
+
+        </ol>
+    {% endmacro %}
+
+        {% for employee in employees %}
+            {% if employee.parent ==null %}
+                <ul style="border: 1px solid #ccc; padding-left: 0;">
+            {{ macros.showChild(employee) }}
+                </ul>
+            {% endif %}
+        {% endfor %}
+
+
+
+
+        {#{% for employee in employees %}#}
+            {#{% if employee.parent == null %}#}
+            {#<tr>#}
+                {#<td>{{ employee.surname }}</td>#}
+                {#<td>{{ employee.name }}</td>#}
+                {#<td>{{ employee.position }}</td>#}
+                {#<td>{{ employee.salary }}</td>#}
+                {#<td>{{ employee.employmentDate|date('Y-m-d') }}</td>#}
+            {#</tr>#}
+            {#{% elseif employee.getParent() == employee.[0] %}#}
+                {#<tr>#}
+                    {#<td style="padding-left: 30px;">{{ employee.surname }}</td>#}
+                    {#<td style="padding-left: 30px;">{{ employee.name }}</td>#}
+                    {#<td style="padding-left: 30px;">{{ employee.position }}</td>#}
+                    {#<td style="padding-left: 30px;">{{ employee.salary }}</td>#}
+                    {#<td style="padding-left: 30px;">{{ employee.employmentDate|date('Y-m-d') }}</td>#}
+                    {#<td>{{ employee.parent.getSurname() }}</td>#}
+                {#</tr>#}
+            {#{% endif %}#}
+
+
+        {#{% endfor %}#}
+
+
+        {#</tbody>#}
+    {#</table>#}
+
+    {#<div class="navigation text-center">#}
+        {#{{ knp_pagination_render(employees) }}#}
+    {#</div>#}
+
+{% endblock %}

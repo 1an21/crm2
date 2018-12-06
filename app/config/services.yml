@@ -1,0 +1,44 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+parameters:
+    image_directory: '%kernel.root_dir%/../web/images'
+services:
+    crv.doctrine_entity_repository.task:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Task
+    crv.doctrine_entity_repository.pause:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Pause
+    crv.doctrine_entity_repository.wiki:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Wiki
+    crv.doctrine_entity_repository.bug:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Bug
+    crv.doctrine_entity_repository.project:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Project
+    app.jwt_token_authenticator:
+            parent: lexik_jwt_authentication.security.guard.jwt_token_authenticator
+            class: AppBundle\Security\Guard\JWTAuthenticator
+    gedmo.listener.tree:
+        class: Gedmo\Tree\TreeListener
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }
+    app.form_login_authenticator:
+        class: AppBundle\Security\FormLoginAuthenticator
+        arguments: ["@router", "@security.password_encoder"]
+    twig.extension.date:
+       class: Twig_Extensions_Extension_Date
+       tags:
+            - { name: twig.extension }

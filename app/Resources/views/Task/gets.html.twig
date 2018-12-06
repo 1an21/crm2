@@ -1,0 +1,121 @@
+{% extends '::base.html.twig'  %}
+
+{% block body %}
+    {% if app.user != null %}
+        <div style="height: 45px;">
+            <a href="{{ path('create')}}" class="btn btn-light btn-sm" style="font-size: 16px;">Add task +</a>
+            <a href="{{ path('daily')}}" class="btn-sm" style="color: #49b965; font-size: 16px;" >Daily tasks</a>
+            <a href="{{ path('wiki')}}" class="btn-sm" style="color: #8a9ad6; font-size: 16px;" >Wiki</a>
+        </div>
+
+
+        <div>
+
+            <div class="todo">
+                <h2>To do</h2>
+                {% for task in tasks %}
+                    <a href="{{ path('view', { 'id': task.id }) }}">
+                        <div class="card">
+                            <p class="title-card">{{ task.title }}</p>
+                            {% if task.project %}
+                                <p class="name-hours">    {{ task.project.title }}</p>
+                            {% endif %}
+                            {% if task.user %}
+                                <p class="hours">    {{ task.user.name }}</p>
+                            {% endif %}
+                            <p class="clearfix"></p>
+                            <p class="button-card">
+                                <a href="{{ path('edit', { 'id': task.id }) }}" id="start-task" class="btn btn-default btn-sm">Start task</a>
+                                <a href="{{ path('finish', { 'id': task.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
+
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            <div class="inprogress">
+                <h2>in Progress</h2>
+                {% for intask in inprogress %}
+                    <a href="{{ path('view', { 'id': intask.id }) }}">
+                        <div class="progress-card">
+                            <p class="title-card">{{ intask.title }}</p>
+                            {% if intask.project %}
+                                <p class="name-hours">    {{ intask.project.title }}</p>
+                            {% endif %}
+                            {% if intask.user %}
+                                <p class="hours">    {{ intask.user.name }}</p>
+                            {% endif %}
+                            <p class="clearfix"></p>
+                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                            <p class="hours">{{ intask.dateFinished|time_diff(intask.dateStarted) }}
+                            </p>
+                            <p class="button-card">
+                                <a href="{{ path('finish', { 'id': intask.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
+                                <a href="{{ path('delay', { 'id': intask.id }) }}" id="delay-task" class="btn btn-warning btn-sm">Delay</a>
+                            </p>
+                        </div>
+                    </a>
+
+                {% endfor %}
+            </div>
+
+            <div class="done">
+                <h2>Done</h2>
+                {% for donetask in donetasks %}
+                    <a href="{{ path('view', { 'id': donetask.id }) }}">
+                        <div class="done-card">
+                            <p class="title-card">{{ donetask.title }}</p>
+                            {% if donetask.project %}
+                                <p class="name-hours">    {{ donetask.project.title }}</p>
+                            {% endif %}
+                            {% if donetask.user %}
+                                <p class="hours">    {{ donetask.user.name }}</p>
+                            {% endif %}
+                            <p class="clearfix"></p>
+                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                            <p class="hours">
+                                {{ donetask.dateFinished|date_modify("-1 seconds")|time_diff(donetask.dateStarted) }}
+                            </p>
+                            <p class="button-card">
+
+                            </p>
+                        </div>
+                    </a>
+
+                {% endfor %}
+            </div>
+
+            <div class="delay">
+                <h2>Delay</h2>
+                {% for delaytask in delaytasks %}
+                    <a href="{{ path('view', { 'id': delaytask.id }) }}">
+                        <div class="delay-card">
+                            <p  class="title-card">{{ delaytask.title }}</p>
+                            {% if delaytask.project %}
+                                <p class="name-hours">    {{ delaytask.project.title }}</p>
+                            {% endif %}
+                            {% if delaytask.user %}
+                                <p class="hours">    {{ delaytask.user.name }}</p>
+                            {% endif %}
+                            <p class="clearfix"></p>
+                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                            <p class="hours">{{ delaytask.dateFinished|time_diff(delaytask.dateStarted) }}
+                            </p>
+                        </div>
+                    </a>
+
+                {% endfor %}
+            </div>
+
+        </div>
+        <div class="navigation text-center">
+            {{ knp_pagination_render(tasks) }}
+        </div>
+    {% endif %}
+    {% if app.user == null %}
+        <div style="text-align:center;"><a href="login" class="btn btn-info" style="text-align:center;"> Login</a>
+            <a href="register" class="btn btn-info" style="text-align:center;"> Register</a>
+        </div>
+    {% endif %}
+{% endblock %}

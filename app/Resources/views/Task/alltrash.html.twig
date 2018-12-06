@@ -1,0 +1,63 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    {% if app.user != null %}
+        <div>
+                <a href="{{ path('create')}}" class="btn btn-default btn-sm" style="float: right">Create</a>
+                <a href="{{ path('all')}}" class="btn btn-default btn-sm" style="float: right">All tasks</a>
+        </div>
+
+        {% if tasks is defined and tasks is not empty %}
+        <table class="table table-hover table-responsive">
+            <thead>
+            <tr>
+                <th class="col-sm-2 {% if tasks.isSorted('e.title') %}sorted{% endif %}">{{ knp_pagination_sortable(tasks, 'Title', 'e.title') }}</th>
+                <th class="col-sm-2 {% if tasks.isSorted('e.description') %}sorted{% endif %}">{{ knp_pagination_sortable(tasks, 'Description', 'e.description') }}</th>
+                <th class="col-sm-4 ">Photo</th>
+                <th class="col-sm-2 ">Date started</th>
+                <th class="col-sm-2 ">Date ended</th>
+
+            </tr>
+            </thead>
+            <tbody>
+
+
+            {% for task in tasks %}
+                <tr>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.description }}</td>
+                    {% if task.image != null %}
+                        <td><img  src="{{ asset('images/' ~ task.getImage()) }}" style=" width:200px;"></td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                    {% if task.dateStarted != null %}
+                        <td>{{ task.dateStarted|date('Y-m-d H:i:s') }}</td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                    {% if task.dateFinished != null %}
+                        <td>{{ task.dateFinished|date('Y-m-d H:i:s') }}</td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+            {% else  %}
+            <p>No tasks</p>
+        {% endif %}
+        <div class="navigation text-center">
+            {{ knp_pagination_render(tasks) }}
+        </div>
+    {% endif %}
+    {% if app.user == null %}
+        <div style="text-align:center;"><a href="login" class="btn btn-info" style="text-align:center;"> Login</a>
+            <a href="register" class="btn btn-info" style="text-align:center;"> Register</a>
+        </div>
+    {% endif %}
+{% endblock %}

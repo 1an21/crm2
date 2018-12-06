@@ -1,0 +1,51 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    {% if app.user != null %}
+
+
+
+
+                    <p class="header">Title</p>  <p>{{ bug.title }}</p>
+
+
+                    <p class="header">Photo</p>
+                    {% if bug.image != null %}
+                       <img  src="{{ asset('images/' ~ bug.getImage()) }}" style=" width:200px;">
+
+                    {% endif %}
+                    <p class="header">Date started</p>
+                    {% if bug.dateStarted != null %}
+                        <p>{{ bug.dateStarted|date('Y-m-d H:i:s') }}</p>
+                    {% else %}
+                        <p></p>
+                    {% endif %}
+                    <p class="header">Date ended</p>
+                    {% if bug.dateFinished != null %}
+                        <p>{{ bug.dateFinished|date('Y-m-d H:i:s') }}</p>
+                    {% else %}
+                        <p></p>
+                    {% endif %}
+                    <p class="header">Time in work</p>
+                    <p>{{ bug.dateFinished|time_diff(bug.dateStarted) }}
+                    </p>
+                    <p class="header">Options</p>
+                        <p>
+                            {% if bug.dateStarted == null %}
+                                <a href="{{ path('edit-bug', { 'id': bug.id }) }}" id="start-bug" class="btn btn-default btn-sm">Start bug</a>
+                            {% endif %}
+                            {% if bug.dateFinished == null %}
+                                <a href="{{ path('finish-bug', { 'id': bug.id }) }}" id="finish-bug" class="btn btn-success btn-sm">Finish bug</a>
+                            {% endif %}
+                            <a href="{{ path('delete-bug', { 'bug': bug.id }) }}" class="btn btn-danger btn-sm">Go to trash</a>
+                        </p>
+
+        <a href="{{ path('all-bug') }}"  class="btn btn-default btn-sm">Back</a>
+
+    {% endif %}
+    {% if app.user == null %}
+        <div style="text-align:center;"><a href="login" class="btn btn-info" style="text-align:center;"> Login</a>
+            <a href="register" class="btn btn-info" style="text-align:center;"> Register</a>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    {% if app.user != null %}
+
+
+
+
+                    <p class="header">Title</p>  <p>{{ task.title }}</p>
+                    <p class="header">Description</p> <p>{{ task.description }}</p>
+                    <p class="header">Employee</p>
+                    {% if task.user %}
+                    <p>    {{ task.user.name }}</p>
+                    {% endif %}
+                    <p class="header">Photo</p>
+                    {% if task.image != null and (".jpeg" in task.image or ".jpg" in task.image or ".png" in task.image)%}
+                       <img  src="{{ asset('images/' ~ task.getImage()) }}" style=" width:200px;">
+                    {% endif %}
+                    {% if task.image != null %}
+                    <a href="{{ asset('images/' ~ task.getImage()) }}">Open File</a>
+                    {% endif %}
+                    <p class="header">Date started</p>
+                    {% if task.dateStarted != null %}
+                        <p>{{ task.dateStarted|date('Y-m-d H:i:s') }}</p>
+                    {% else %}
+                        <p></p>
+                    {% endif %}
+                    <p class="header">Date ended</p>
+                    {% if task.dateFinished != null %}
+                        <p>{{ task.dateFinished|date('Y-m-d H:i:s') }}</p>
+                    {% else %}
+                        <p></p>
+                    {% endif %}
+                    <p class="header">Time in work</p>
+                    <p>{{ task.dateFinished|time_diff(task.dateStarted) }}
+                    </p>
+                    <p class="header">Options</p>
+                        <p>
+                            {% if task.dateStarted == null %}
+                                <a href="{{ path('edit', { 'id': task.id }) }}" id="start-task" class="btn btn-default btn-sm">Start task</a>
+                            {% endif %}
+                            {% if task.dateFinished == null %}
+                                <a href="{{ path('finish', { 'id': task.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
+                            {% endif %}
+                            <a href="{{ path('delete', { 'task': task.id }) }}" class="btn btn-danger btn-sm">Go to trash</a>
+                        </p>
+
+        <a href="{{ path('all') }}"  class="btn btn-default btn-sm">Back</a>
+        <a href="{{ path('edit-view', { 'id': task.id }) }}"  class="btn btn-default btn-sm">Edit</a>
+    {% endif %}
+    {% if app.user == null %}
+        <div style="text-align:center;"><a href="{{ path('login') }}" class="btn btn-info" style="text-align:center;"> Login</a>
+            <a href="/register" class="btn btn-info" style="text-align:center;"> Register</a>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends '::base.html.twig'  %}
+
+{% block body %}
+
+    <a href="{{ path('wiki-create')}}" class="btn btn-light btn-sm" style="font-size: 16px;">Add +</a>
+    <table class="table table-hover table-responsive">
+        <th style=" font-size: 24px;">Project</th>
+        <th style=" font-size: 24px;">Username</th>
+        <th style=" font-size: 24px;">Password</th>
+        <th style=" font-size: 24px;">Admin URL</th>
+        {% for w in wiki %}
+
+            <tr>
+                <td style=" font-size: 24px;">
+            {% if w.project %}
+                    <a href="/q/{{ w.project.title }}">{{ w.project.title }}</a>
+            {% endif %}
+                </td>
+                <td><a onclick="copy(this)" class="copy-clipboard i-have-a-tooltip"  data-description="Click to copy">{{ w.username }} </a></td>
+                <td><a onclick="copy(this)" class="copy-clipboard i-have-a-tooltip"  data-description="Click to copy">{{ w.password }}</a></td>
+                <td style=" font-size: 24px;"><a href="{{ w.adminUrl }}" target="_blank">{{ w.adminUrl }}</a></td>
+                <td style=" font-size: 24px;"><a href="{{ path('wiki-all' , { 'project': w.project.id }) }}">View</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

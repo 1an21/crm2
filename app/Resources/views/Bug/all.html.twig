@@ -1,0 +1,109 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    {% if app.user != null %}
+    <div>
+        <form action="{{ path('all-bug') }}" method="get">
+            <label for="filter">Filter</label>
+            <input name="filter" type="text">
+            <button type="submit" class="btn btn-default btn-sm">Filter</button>
+            <a href="{{ path('create-bug')}}" class="btn btn-default btn-sm" style="float: right">Create</a>
+
+        </form>
+    </div>
+        
+    <div>
+
+     <div class="todo">
+        <h2>To do</h2>
+            {% for bug in bugs %}
+                <a href="{{ path('view-bug', { 'id': bug.id }) }}">
+            <div class="card">
+                <p class="title-card">{{ bug.project.title }}</p>
+                <p class="title-card">{{ bug.title }}</p>
+                <img  src="{{ asset('images/' ~ bug.getImage()) }}" style="display: block; margin: 0 auto;">
+                <p class="clearfix"></p>
+                <p class="button-card">
+                    <a href="{{ path('edit-bug', { 'id': bug.id }) }}" id="start-bug" class="btn btn-default btn-sm">Start bug</a>
+                    <a href="{{ path('finish-bug', { 'id': bug.id }) }}" id="finish-bug" class="btn btn-success btn-sm">Finish bug</a>
+
+                </p>
+            </div>
+                </a>
+        {% endfor %}
+     </div>
+
+     <div class="inprogress">
+        <h2>in Progress</h2>
+        {% for inbug in inprogress %}
+         <a href="{{ path('view-bug', { 'id': inbug.id }) }}">
+            <div class="progress-card">
+                <p class="title-card">{{ inbug.project.title }}</p>
+                <p class="title-card">{{ inbug.title }}</p>
+                <img  src="{{ asset('images/' ~ inbug.getImage()) }}" style="display: block; margin: 0 auto;">
+                <p class="clearfix"></p>
+                <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                <p class="hours">{{ inbug.dateFinished|time_diff(inbug.dateStarted) }}
+                </p>
+                <p class="button-card">
+                    <a href="{{ path('finish-bug', { 'id': inbug.id }) }}" id="finish-bug" class="btn btn-success btn-sm">Finish bug</a>
+                    <a href="{{ path('delay-bug', { 'id': inbug.id }) }}" id="delay-bug" class="btn btn-warning btn-sm">Delay</a>
+
+                </p>
+            </div>
+         </a>
+
+        {% endfor %}
+     </div>
+
+     <div class="done">
+         <h2>Done</h2>
+          {% for donebug in donebugs %}
+         <a href="{{ path('view-bug', { 'id': donebug.id }) }}">
+                <div class="done-card">
+                    <p class="title-card">{{ donebug.project.title }}</p>
+                    <p class="title-card">{{ donebug.title }}</p>
+                    <img  src="{{ asset('images/' ~ donebug.getImage()) }}" style="display: block; margin: 0 auto;">
+                    <p class="clearfix"></p>
+                    <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                    <p class="hours">
+                        {{ donebug.dateFinished|time_diff(donebug.dateStarted) }}
+                    </p>
+                    <p class="button-card">
+
+                    </p>
+                </div>
+         </a>
+
+          {% endfor %}
+     </div>
+
+        <div class="delay">
+            <h2>Delay</h2>
+            {% for delaybug in delaybugs %}
+            <a href="{{ path('view', { 'id': delaybug.id }) }}">
+                <div class="delay-card">
+                    <p class="title-card">{{ delaybug.project.title }}</p>
+                    <p  class="title-card">{{ delaybug.title }}</p>
+                    <img  src="{{ asset('images/' ~ delaybug.getImage()) }}" style="display: block; margin: 0 auto;">
+                    <p class="clearfix"></p>
+                    <p class="name-hours"><img src="/images/wall-clock.png"></p>
+                    <p class="hours">{{ delaybug.dateFinished|time_diff(delaybug.dateStarted) }}
+                    </p>
+                </div>
+            </a>
+
+            {% endfor %}
+        </div>
+
+    </div>
+    <div class="navigation text-center">
+    {{ knp_pagination_render(bugs) }}
+    </div>
+    {% endif %}
+    {% if app.user == null %}
+        <div style="text-align:center;"><a href="login" class="btn btn-info" style="text-align:center;"> Login</a>
+            <a href="register" class="btn btn-info" style="text-align:center;"> Register</a>
+        </div>
+    {% endif %}
+{% endblock %}

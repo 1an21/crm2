@@ -1,0 +1,13 @@
+NelmioApiDocBundle:
+    resource: "@NelmioApiDocBundle/Resources/config/routing.yml"
+    prefix: "/doc"
+login:
+    path: /login
+    defaults: { _controller: AppBundle:Security:login}
+#wiki:
+#    resource: "@AppBundle/Controller/WikiController.php"
+#    type: annotation
+employees:
+    resource: "@AppBundle/Controller"
+    type: annotation
+

@@ -1,0 +1,22 @@
+security:
+    encoders:
+        AppBundle\Entity\User: bcrypt
+    providers:
+        entity_provider:
+            entity: { class: AppBundle:User, property: email }
+    firewalls:
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            anonymous: true
+            guard:
+                authenticators:
+                    - app.form_login_authenticator
+            form_login:
+                 default_target_path: all
+            logout:
+                path: /logout
+                target: /

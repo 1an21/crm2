@@ -1,0 +1,14 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+    <div class="main">
+    <div class="field">
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+
+    </div>
+        <input type="submit" class="btn btn-default btn-sm" style="float: right;" value="Add" />
+        <a href="{{ path('all') }}" class="btn btn-info btn-sm" style="float: left;">Back to All</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends '::base.html.twig'  %}
+{% block body %}
+
+    <table class="table table-hover table-responsive">
+        <th style=" font-size: 24px;">Project</th>
+        <th style=" font-size: 24px;">Username</th>
+        <th style=" font-size: 24px;">Password</th>
+        <th style=" font-size: 24px;">Admin URL</th>
+        {% for w in wiki %}
+
+            <tr>
+                <td style=" font-size: 24px;">
+                    {% if w.project %}
+                        <a href="/q/{{ w.project.title }}">{{ w.project.title }}</a>
+                    {% endif %}
+                </td>
+                <td><a onclick="copy(this)" class="copy-clipboard i-have-a-tooltip"  data-description="Click to copy">{{ w.username }} </a></td>
+                <td><a onclick="copy(this)" class="copy-clipboard i-have-a-tooltip"  data-description="Click to copy">{{ w.password }}</a></td>
+                <td style=" font-size: 24px;"><a href="{{ w.adminUrl }}" target="_blank">{{ w.adminUrl }}</a></td>
+                <td style=" font-size: 24px;">
+                {% if w.file != null %}
+                    <a href="{{ asset('images/' ~ w.file) }}">Open File</a>
+                {% endif %}
+                    <a href="{{ path('edit-wiki', { 'id': w.id }) }}">Edit</a>
+                    </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

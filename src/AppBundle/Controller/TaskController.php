@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\AppBundle;
 use AppBundle\Entity\Task;
 use AppBundle\Entity\Repository\TaskRepository;
 use AppBundle\Form\Type\TaskType;
@@ -15,6 +16,7 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\File\File;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use AppBundle\Form\Type\CommentType;
 /**
  * Class TaskController
  * @package AppBundle\Controller
@@ -65,8 +67,7 @@ class TaskController extends FOSRestController implements ClassResourceInterface
         $delaytasks = $this->getTaskRepository()->findDelayQuery()->getResult();
 
         return $this->render('Task/all.html.twig', [
-            'tasks' => $tasks, 'inprogress'=>$intasks, 'donetasks'=>$donetasks, 'delaytasks'=>$delaytasks, 'projects'=>$projects, 'total'=>$total
-        ]);
+            'tasks' => $tasks, 'inprogress'=>$intasks, 'donetasks'=>$donetasks, 'delaytasks'=>$delaytasks, 'projects'=>$projects, 'total'=>$total]);
     }
 
     /**
@@ -92,70 +93,16 @@ class TaskController extends FOSRestController implements ClassResourceInterface
         $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $total=$this->getTaskRepository()->getTimeByQuery($project)->getOneOrNullResult();
         $employeeTotal=$this->getTaskRepository()->getTimeByEmployeeQuery($project)->getResult();
-        $queryBuilder = $this->getTaskRepository()->searchByQuery($project);
-        if ($request->query->getAlnum('filter')) {
-            $queryBuilder
-                ->where('e.title LIKE :name')
-                ->orwhere('e.description LIKE :name')
-                ->setParameter('name', '%' . $request->query->getAlnum('filter') . '%');
-        }
-        $query = $queryBuilder->getQuery();
-        $paginator  = $this->get('knp_paginator');
-        $tasks = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            $request->query->getInt('limit', 50)
-        );
 
-        $queryBuilder2 = $this->getTaskRepository()->searchInQuery($project);
-        if ($request->query->getAlnum('filter')) {
-            $queryBuilder2
-                ->where('e.title LIKE :name')
-                ->orwhere('e.description LIKE :name')
-                ->setParameter('name', '%' . $request->query->getAlnum('filter') . '%');
-        }
-        $query2 = $queryBuilder2->getQuery();
-        $paginator  = $this->get('knp_paginator');
-        $intasks = $paginator->paginate(
-            $query2,
-            $request->query->getInt('page', 1),
-            $request->query->getInt('limit', 50)
-        );
+        $tasks = $this->getTaskRepository()->searchByQuery($project)->getResult();
+        $intasks = $this->getTaskRepository()->searchInQuery($project)->getResult();
+        $donetasks = $this->getTaskRepository()->searchDoneQuery($project)->getResult();
+        $delaytasks = $this->getTaskRepository()->searchDelayQuery($project)->getResult();
 
-        $queryBuilder3 = $this->getTaskRepository()->searchDoneQuery($project);
-        if ($request->query->getAlnum('filter')) {
-            $queryBuilder3
-                ->where('e.title LIKE :name')
-                ->orwhere('e.description LIKE :name')
-                ->setParameter('name', '%' . $request->query->getAlnum('filter') . '%');
-        }
-        $query3 = $queryBuilder3->getQuery();
-        $paginator  = $this->get('knp_paginator');
-        $donetasks = $paginator->paginate(
-            $query3,
-            $request->query->getInt('page', 1),
-            $request->query->getInt('limit', 50)
-        );
-
-        $queryBuilder4 = $this->getTaskRepository()->searchDelayQuery($project);
-        if ($request->query->getAlnum('filter')) {
-            $queryBuilder4
-                ->where('e.title LIKE :name')
-                ->orwhere('e.description LIKE :name')
-                ->setParameter('name', '%' . $request->query->getAlnum('filter') . '%');
-        }
-        $query4 = $queryBuilder4->getQuery();
-        $paginator  = $this->get('knp_paginator');
-        $delaytasks = $paginator->paginate(
-            $query4,
-            $request->query->getInt('page', 1),
-            $request->query->getInt('limit', 50)
-        );
-
-
+        $employeeDate=$this->getTaskRepository()->getTimeByDateAndEmployeeQuery($project)->getResult();
         return $this->render('Task/allby.html.twig', [
             'tasks' => $tasks, 'inprogress'=>$intasks,  'donetasks'=>$donetasks, 'delaytasks'=>$delaytasks, 'projects'=>$projects, 'total'=>$total,
-        'employee'=>$employeeTotal]);
+        'employee'=>$employeeTotal, 'employeeDate'=> $employeeDate]);
     }
 
     /**
@@ -218,9 +165,10 @@ class TaskController extends FOSRestController implements ClassResourceInterface
 
     public function taskByEmployeeAndProjectsDailyAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $employeeTotal=$this->getTaskRepository()->getTimeByEmployeeByDailyQuery()->getResult();
         return $this->render('Task/daily.html.twig', [
-          'employees'=>$employeeTotal
+          'employees'=>$employeeTotal, 'projects'=>$projects
         ]);
     }
 
@@ -244,9 +192,10 @@ class TaskController extends FOSRestController implements ClassResourceInterface
 
     public function taskByEmployeeAndProjectsWeeklyAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $employeeTotal=$this->getTaskRepository()->getTimeByEmployeeByWeeklyQuery()->getResult();
         return $this->render('Task/weekly.html.twig', [
-            'employees'=>$employeeTotal
+            'employees'=>$employeeTotal, 'projects'=>$projects
         ]);
     }
 
@@ -270,9 +219,10 @@ class TaskController extends FOSRestController implements ClassResourceInterface
 
     public function taskByEmployeeAndProjectsAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $employeeTotal=$this->getTaskRepository()->getTimeByEmployeeAllQuery()->getResult();
         return $this->render('Task/all-schema.html.twig', [
-            'employees'=>$employeeTotal
+            'employees'=>$employeeTotal, 'projects'=>$projects
         ]);
     }
 
@@ -294,6 +244,7 @@ class TaskController extends FOSRestController implements ClassResourceInterface
      */
     public function postAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $form = $this->createForm(TaskType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -310,12 +261,17 @@ class TaskController extends FOSRestController implements ClassResourceInterface
 
                 $task->setImage($fileName);
             }
+            $userId = $this->get('security.token_storage')->getToken()->getUser()->getId();
+            $userCreated = $this->getDoctrine()
+                ->getRepository('AppBundle:User')
+                ->find( $userId);
+            $task->setWhoCreate($userCreated);
             $em->persist($task);
             $em->flush();
             return $this->redirectToRoute('all');
         }
         return $this->render('Task/create.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(), 'projects'=>$projects
         ]);
     }
 
@@ -333,14 +289,50 @@ class TaskController extends FOSRestController implements ClassResourceInterface
      *     }
      * )
      * @Route("/view/{id}", name="view")
-     * @Method({"GET"})
+     * @Method({"GET", "POST"})
      * @return RedirectResponse
      */
-    public function getAction(Task $task)
+    public function getAction(Task $task, Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
+  	    $taskId = $task->getId();
+        $oneTask = $this->getTaskRepository()->oneTaskDoneQuery($taskId)->getOneOrNullResult();
+        $form = $this->createForm(CommentType::class);
+        $form->handleRequest($request);
+        $who = $task->getWhoCreate();
+        $userMail = $this->getTaskRepository()->getEmailWhoCreatedQuery($who)->getOneOrNullResult();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $comment = $form->getData();
+
+            $userId = $this->get('security.token_storage')->getToken()->getUser()->getId();
+            $userCreated = $this->getDoctrine()
+                ->getRepository('AppBundle:User')
+                ->find( $userId);
+
+            $comment->setUser($userCreated);
+            $comment->setCreated(new \DateTime());
+            $comment->setUpdated(new \DateTime());
+            $comment->setTask($task);
+            $em->persist($comment);
+            $em->flush();
+            return $this->redirectToRoute('view', array('id' => $taskId));
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject('New comment in Admin Qualiteam')
+                ->setFrom('poshchada@gmail.com')
+                ->setTo($userMail['email'])
+                ->setBody($comment->getComment());
+            $this->get('mailer')->send($message);
+        }
+
+
+
+        $comments = $this->getTaskRepository()->getCommentsForBlog($task->getId())->getResult();
         return $this->render('Task/view.html.twig', [
-            'task' => $task,
+            'task' => $oneTask, 'who' => $who, 'comments'=>$comments, 'form' => $form->createView(), 'projects'=>$projects
         ]);
+
     }
 
     /**
@@ -395,6 +387,7 @@ class TaskController extends FOSRestController implements ClassResourceInterface
      */
     public function editAction(Request $request, Task $task)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -405,7 +398,7 @@ class TaskController extends FOSRestController implements ClassResourceInterface
             );
         }
         return $this->render('Task/edit-view.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(), 'projects'=>$projects
         ]);
     }
 
@@ -511,30 +504,20 @@ class TaskController extends FOSRestController implements ClassResourceInterface
      *     }
      * )
      * @Route("/get", name="gets")
-     * @Method({"DELETE", "GET"})
+     * @Method({"GET"})
      */
     public function getByEmployeeAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $userId = $this->get('security.token_storage')->getToken()->getUser()->getId();
-        $queryBuilder=$this->getTaskRepository()->findByEmployeeQuery($userId);
-        if ($request->query->getAlnum('filter')) {
-            $queryBuilder
-                ->where('e.title LIKE :name')
-                ->orwhere('e.description LIKE :name')
-                ->setParameter('name', '%' . $request->query->getAlnum('filter') . '%');
-        }
-        $query = $queryBuilder->getQuery();
-        $paginator  = $this->get('knp_paginator');
-        $tasks = $paginator->paginate(
-            $query,
-            $request->query->getInt('page', 1),
-            $request->query->getInt('limit', 50)
-        );
+
+        $tasks=$this->getTaskRepository()->findByEmployeeQuery($userId)->getResult();
         $intasks=$this->getTaskRepository()->findByEmployeeInQuery($userId)->getResult();
         $donetasks=$this->getTaskRepository()->findByEmployeeDoneQuery($userId)->getResult();
         $delaytasks=$this->getTaskRepository()->findByEmployeeDelayQuery($userId)->getResult();
+
         return $this->render('Task/gets.html.twig', [
-            'tasks' => $tasks, 'inprogress'=>$intasks,  'donetasks'=>$donetasks, 'delaytasks'=>$delaytasks
+            'tasks' => $tasks, 'inprogress'=>$intasks,  'donetasks'=>$donetasks, 'delaytasks'=>$delaytasks, 'projects'=>$projects
         ]);
     }
 
@@ -544,6 +527,11 @@ class TaskController extends FOSRestController implements ClassResourceInterface
     private function getTaskRepository()
     {
         return $this->get('crv.doctrine_entity_repository.task');
+    }
+
+    private function getCommentRepository()
+    {
+        return $this->get('crv.doctrine_entity_repository.comment');
     }
     private function generateUniqueFileName()
     {

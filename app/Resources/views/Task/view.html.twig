@@ -2,40 +2,86 @@
 
 {% block body %}
     {% if app.user != null %}
+        <table class="table table-hover table-responsive mobile-table">
+        <th class="col-sm-4" style=" font-size: 24px;">Title</th>
+        <th class="col-sm-4" style=" font-size: 24px;">Description</th>
+        <th class="col-sm-2" style=" font-size: 24px;">Employee</th>
+        <th class="col-sm-2" style=" font-size: 24px;">Status</th>
+
+        <tr>
+            <td style=" font-size: 24px;">{{ task.title }}</td>
+            <td style=" font-size: 24px;">{{ task.description }} </td>
+            <td style=" font-size: 24px;">
+                {% if task.user %}
+                        {{ task.user }}
+                {% endif %}
+            </td>
+            {% if task.status == '3' %}
+                {% set stat = 'green'%}
+            {% elseif  task.status == '0' %}
+                 {% set stat = 'red' %}
+            {% elseif  task.status == '2' %}
+                {% set stat = 'blue' %}
+            {% endif %}
+            <td style=" font-size: 24px;"><div style="width:20px; height:20px;border-radius: 10px;background: {{ stat }}"></div></td>
+        </tr>
+        </table>
+        <table class="table table-hover table-responsive mobile-table">
+        <th class="col-sm-4" style=" font-size: 24px;">File</th>
+        <th class="col-sm-2" style=" font-size: 24px;">When Started</th>
+        <th class="col-sm-2" style=" font-size: 24px;">When Finished</th>
+        <th class="col-sm-2" style=" font-size: 24px;">Time in work</th>
+        <th class="col-sm-2" style=" font-size: 24px;">Who created</th>
+
+        <tr>
+            <td style=" font-size: 24px;">
+                {% if task.image != null and (".jpeg" in task.image or ".jpg" in task.image or ".png" in task.image)%}
+                    <img  src="{{ asset('images/' ~ task.image) }}" style=" width:80%;">
+                {% endif %}
+                {% if task.image != null %}
+                    <a href="{{ asset('images/' ~ task.image) }}">Download File</a>
+                {% endif %}
+            </td>
+            <td style=" font-size: 24px;">{% if task.dateSs != null %}
+                    <p>{{ task.dateSs|date('Y-m-d H:i:s') }}</p>
+                {% else %}
+                    <p>Not started yet</p>
+                {% endif %}</td>
+            <td style=" font-size: 24px;">{% if task.dateF != null %}
+                    <p>{{ task.dateF|date('Y-m-d H:i:s') }}</p>
+                {% else %}
+                    <p>Not finished yet</p>
+                {% endif %}
+            </td>
+            <td style=" font-size: 24px;"><p>{{ task.diff }}</td>
+            <td style=" font-size: 24px;"><p>{{ who.name }}</td>
+        </tr>
+        </table>
+        <section class="comments" id="comments">
+            <p class="header">Add Comment</p>
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+
+            <input type="submit" class="btn btn-default btn-sm" value="Add" />
+            {{ form_end(form) }}
 
 
+            <section class="previous-comments">
+        <h3>Comments</h3>
+        {% for comment in comments %}
+            <article class="comment {{ cycle(['odd', 'even'], loop.index0) }}" id="comment-{{ comment.id }}">
+                <header>
+                    <p><span class="highlight"> {{ comment.name }}</span> commented <time datetime="{{ comment.created|date('c') }}">{{ comment.created|date('l, F j, Y') }}</time></p>
+                </header>
+                <p>{{ comment.comment }}</p>
+            </article>
+        {% endfor %}
+        </section>
+        </section>
 
-
-                    <p class="header">Title</p>  <p>{{ task.title }}</p>
-                    <p class="header">Description</p> <p>{{ task.description }}</p>
-                    <p class="header">Employee</p>
-                    {% if task.user %}
-                    <p>    {{ task.user.name }}</p>
-                    {% endif %}
-                    <p class="header">Photo</p>
-                    {% if task.image != null and (".jpeg" in task.image or ".jpg" in task.image or ".png" in task.image)%}
-                       <img  src="{{ asset('images/' ~ task.getImage()) }}" style=" width:200px;">
-                    {% endif %}
-                    {% if task.image != null %}
-                    <a href="{{ asset('images/' ~ task.getImage()) }}">Open File</a>
-                    {% endif %}
-                    <p class="header">Date started</p>
-                    {% if task.dateStarted != null %}
-                        <p>{{ task.dateStarted|date('Y-m-d H:i:s') }}</p>
-                    {% else %}
-                        <p></p>
-                    {% endif %}
-                    <p class="header">Date ended</p>
-                    {% if task.dateFinished != null %}
-                        <p>{{ task.dateFinished|date('Y-m-d H:i:s') }}</p>
-                    {% else %}
-                        <p></p>
-                    {% endif %}
-                    <p class="header">Time in work</p>
-                    <p>{{ task.dateFinished|time_diff(task.dateStarted) }}
-                    </p>
                     <p class="header">Options</p>
                         <p>
+                            <a href="{{ path('all') }}"  class="btn btn-default btn-sm">Back</a>
                             {% if task.dateStarted == null %}
                                 <a href="{{ path('edit', { 'id': task.id }) }}" id="start-task" class="btn btn-default btn-sm">Start task</a>
                             {% endif %}
@@ -43,14 +89,15 @@
                                 <a href="{{ path('finish', { 'id': task.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
                             {% endif %}
                             <a href="{{ path('delete', { 'task': task.id }) }}" class="btn btn-danger btn-sm">Go to trash</a>
+                            <a href="{{ path('edit-view', { 'id': task.id }) }}"  class="btn btn-default btn-sm">Edit</a>
                         </p>
 
-        <a href="{{ path('all') }}"  class="btn btn-default btn-sm">Back</a>
-        <a href="{{ path('edit-view', { 'id': task.id }) }}"  class="btn btn-default btn-sm">Edit</a>
+
+
     {% endif %}
     {% if app.user == null %}
         <div style="text-align:center;"><a href="{{ path('login') }}" class="btn btn-info" style="text-align:center;"> Login</a>
-            <a href="/register" class="btn btn-info" style="text-align:center;"> Register</a>
+            {#<a href="/register" class="btn btn-info" style="text-align:center;"> Register</a>#}
         </div>
     {% endif %}
 {% endblock %}

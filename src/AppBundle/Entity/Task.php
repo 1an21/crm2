@@ -31,6 +31,16 @@ class Task
     private $user;
 
     /**
+     * @var \AppBundle\Entity\User
+     *
+     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\User")
+     * @ORM\JoinColumns({
+     *   @ORM\JoinColumn(name="who_create", referencedColumnName="id")
+     * })
+     */
+    private $whoCreate;
+
+    /**
      * @var string
      *
      * @ORM\Column(name="title", type="text", length=65535, nullable=false)
@@ -91,7 +101,10 @@ class Task
      * })
      */
     private $project;
-
+    /**
+     * @ORM\OneToMany(targetEntity="Comment", mappedBy="task")
+     */
+    protected $comments;
 
     public function getImage()
     {
@@ -236,6 +249,30 @@ class Task
     }
 
     /**
+     * Set whoCreate
+     *
+     * @param \AppBundle\Entity\User $whoCreate
+     *
+     * @return Task
+     */
+    public function setWhoCreate(\AppBundle\Entity\User $whoCreate = null)
+    {
+        $this->whoCreate = $whoCreate;
+
+        return $this;
+    }
+
+    /**
+     * Get whoCreate
+     *
+     * @return \AppBundle\Entity\User
+     */
+    public function getWhoCreate()
+    {
+        return $this->whoCreate;
+    }
+
+    /**
      * Set status
      *
      * @param int $status
@@ -304,6 +341,11 @@ class Task
     public function getProject()
     {
         return $this->project;
+    }
+
+    public function __toString()
+    {
+        return $this->getTitle();
     }
 }
 

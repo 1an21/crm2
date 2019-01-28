@@ -13,6 +13,11 @@ services:
         factory: ["@doctrine", getRepository]
         arguments:
             - AppBundle\Entity\Pause
+    crv.doctrine_entity_repository.comment:
+        class: Doctrine\ORM\EntityRepository
+        factory: ["@doctrine", getRepository]
+        arguments:
+            - AppBundle\Entity\Comment
     crv.doctrine_entity_repository.wiki:
         class: Doctrine\ORM\EntityRepository
         factory: ["@doctrine", getRepository]

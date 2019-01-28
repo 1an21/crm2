@@ -2,37 +2,60 @@
 
 {% block body %}
     {% if app.user != null %}
-        <div style="height: 45px;">
-
+        <div class="management-buttons">
             <a href="{{ path('create')}}" class="btn btn-light btn-sm" style="font-size: 16px;">Add task +</a>
             <a href="{{ path('gets')}}" class="btn btn-light btn-sm" style="font-size: 16px;">My tasks</a>
-            <a href="{{ path('alltrash')}}" class="btn-sm" style="color: #ee254a;font-size: 16px;" >Trash tasks</a>
-            <a href="{{ path('daily')}}" class="btn-sm" style="color: #49b965; font-size: 16px;" >Daily tasks</a>
-
+            <a href="{{ path('daily')}}" class="btn btn-sm" style="color: #49b965; font-size: 16px;" >Daily tasks</a>
+            <a href="{{ path('wiki')}}" class="btn btn-sm" style="color: #8a9ad6; font-size: 16px;" >Wiki</a>
         </div>
-        <div style="text-align: center">
-            {% for empl in employee %}
-                <p style="display: inline-block; font-size: 24px;  margin-right: 30px; ">{{ empl.names }}: {{ empl.times }}</p>
+        <div id="action-buttons">
+            <a href="#todo" class="btn btn-light btn-sm" style="font-size: 14px;">To do</a>
+            <a href="#inprogress" class="btn btn-light btn-sm" style="font-size: 14px;">In progress</a>
+            <a href="#done" class="btn btn-sm" style=" font-size: 14px;" >Done</a>
+            <a href="#delay" class="btn btn-sm" style=" font-size: 14px;" >Delay</a>
+        </div>
+
+
+        <table class="table table-hover table-responsive mobile-table">
+            <th style="font-size: 24px;">Employee</th>
+            <th style=" font-size: 24px;">Total</th>
+            <th style=" font-size: 24px;">Last Day</th>
+            {% for e in employeeDate %}
+
+                <tr>
+                    <td style=" font-size: 24px;">{{ e.names }} </td>
+                    <td style=" font-size: 24px;">{{ e.times }}</td>
+                    <td style=" font-size: 24px;">{{ e.finished }}</td>
+                </tr>
             {% endfor %}
-        </div>
+        </table>
 
-        <div>
-
-            <div class="todo">
+        <div class="main-div">
+            <div class="todo" id="todo">
                 <h2>To do</h2>
                 {% for task in tasks %}
                     <a href="{{ path('view', { 'id': task.id }) }}">
-                        <div class="card">
-                            <p class="title-card">{{ task.title }}</p>
 
-                            {% if task.user %}
-                                <p class="hours">    {{ task.user.name }}</p>
+                        <div draggable="true" class="card">
+                            {% if task.priority %}
+                                <div class="{{ task.priority.title }}"></div>
+                            {% else %}
+                                <div></div>
                             {% endif %}
-                            <p class="clearfix"></p>
-                            <p class="button-card">
-                                <a href="{{ path('edit', { 'id': task.id }) }}" id="start-task" class="btn btn-default btn-sm">Start task</a>
-                                <a href="{{ path('finish', { 'id': task.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
+                            <div style="display: inline-block;float: right;"><img src="/images/chat.png">{{ task.cc }}</div>
+                            <p class="title-card">{{ task.title }}</p>
+                            <p class="name-hours">    {{ task.project }}</p>
 
+                            <p class="hours">    {{ task.user }}</p>
+
+                            <p class="clearfix my-line"></p>
+                            <p class="button-card">
+                                <a href="{{ path('edit', { 'id': task.id }) }}" id="start-task" style="
+                            text-align: right;
+                            display: block;
+                            margin-right: 20px;">
+                                    <img src="/images/start.png">
+                                </a>
 
                             </p>
                         </div>
@@ -40,79 +63,98 @@
                 {% endfor %}
             </div>
 
-            <div class="inprogress">
+            <div class="inprogress" id="inprogress">
                 <h2>in Progress</h2>
                 {% for intask in inprogress %}
                     <a href="{{ path('view', { 'id': intask.id }) }}">
-                        <div class="progress-card">
+
+                        <div class="progress-card ">
+                            <div class="{{ intask.priority }}"></div>
+                            <div style="display: inline-block;float: right;"><img src="/images/chat.png">{{ intask.cc }}</div>
                             <p class="title-card">{{ intask.title }}</p>
-
-                            {% if intask.user %}
-                                <p class="hours">    {{ intask.user.name }}</p>
-                            {% endif %}
-                            <p class="clearfix"></p>
-                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
-                            <p class="hours">{{ intask.dateFinished|time_diff(intask.dateStarted) }}
-                            </p>
-                            <p class="button-card">
-                                <a href="{{ path('finish', { 'id': intask.id }) }}" id="finish-task" class="btn btn-success btn-sm">Finish task</a>
-                                <a href="{{ path('delay', { 'id': intask.id }) }}" id="delay-task" class="btn btn-warning btn-sm">Delay</a>
-
-                            </p>
+                            <p class="name-hours">{{ intask.project }}</p>
+                            <p class="hours">{{ intask.user }}</p>
+                            <p class="clearfix my-line"></p>
+                            <div class="button-card">
+                                <p class="new-hours">{{ intask.dateFinished|time_diff(intask.dateStarted) }}
+                                </p>
+                                {% if intask.dateS is null %}
+                                    <a href="{{ path('pause', { 'id': intask.id }) }}" id="pause-task"><img src="/images/2-layers.png"></a>
+                                {% endif %}
+                                {% if intask.dateF is null and intask.dateS is not empty %}
+                                    <a href="{{ path('pause-end', { 'id': intask.id }) }}" id="pause-end-task" style="border: 2px solid #8a9ad6;
+    padding: 1px 1px;">Pause end</a>
+                                {% endif %}
+                                <a href="{{ path('delay', { 'id': intask.id }) }}" id="delay-task" style="border: 2px solid #8a9ad6;
+    padding: 1px 1px;">Delay</a>
+                                <a href="{{ path('finish', { 'id': intask.id }) }}" id="finish-task" style="
+                            float: right;
+                            display: block;
+                            margin-right: 10px;">
+                                    <img src="/images/finish.png"></a>
+                            </div>
                         </div>
                     </a>
 
                 {% endfor %}
             </div>
 
-            <div class="done">
+            <div class="done" id="done">
                 <h2>Done</h2>
-                {% for donetask in donetasks %}
-                    <a href="{{ path('view', { 'id': donetask.id }) }}">
-                        <div class="done-card">
-                            <p class="title-card">{{ donetask.title }}</p>
+                {% for done in donetasks %}
+                    <a href="{{ path('view', { 'id': done.id }) }}">
+                        {% if done.priority %}
+                        <div class="done-card {{ done.priority.title }}">
+                            {% else %}
+                            <div class="done-card">
+                                {% endif %}
+                                <div style="display: inline-block;float: right;"><img src="/images/chat.png">{{ done.cc }}</div>
+                                <p class="title-card">{{ done.title }}</p>
 
-                            {% if donetask.user %}
-                                <p class="hours">    {{ donetask.user.name }}</p>
-                            {% endif %}
-                            <p class="clearfix"></p>
-                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
-                            <p class="hours">
-                                {{ donetask.dateFinished|time_diff(donetask.dateStarted) }}
-                            </p>
-                            <p class="button-card">
+                                <p class="name-hours">    {{ done.project}}</p>
 
-                            </p>
-                        </div>
+                                <p class="hours">    {{ done.user }}</p>
+
+                                <p class="clearfix my-line"></p>
+                                <div class="button-card">
+
+                                    <p class="new-hours-done">{{ done.diff }}
+                                    </p>
+                                    <p style="float: right; margin-right: 10px;">{{ done.dateF|date('Y-m-d') }}</p>
+                                </div>
+
+                            </div>
                     </a>
 
                 {% endfor %}
             </div>
 
-            <div class="delay">
+            <div class="delay" id="delay">
                 <h2>Delay</h2>
                 {% for delaytask in delaytasks %}
                     <a href="{{ path('view', { 'id': delaytask.id }) }}">
-                        <div class="delay-card">
-                            <p  class="title-card">{{ delaytask.title }}</p>
-
-                            {% if delaytask.user %}
-                                <p class="hours">    {{ delaytask.user.name }}</p>
-                            {% endif %}
-                            <p class="clearfix"></p>
-                            <p class="name-hours"><img src="/images/wall-clock.png"></p>
-                            <p class="hours">{{ delaytask.dateFinished|time_diff(delaytask.dateStarted) }}
-                            </p>
-                        </div>
+                        {% if delaytask.priority %}
+                        <div class="delay-card {{ delaytask.priority.title }}">
+                            {% else %}
+                            <div class="delay-card">
+                                {% endif %}
+                                <div style="display: inline-block;float: right;"><img src="/images/chat.png">{{ delaytask.cc }}</div>
+                                <p class="title-card">{{ delaytask.title }}</p>
+                                {% if delaytask.project %}
+                                    <p class="name-hours">    {{ delaytask.project }}</p>
+                                {% endif %}
+                                <p class="hours">    {{ delaytask.user }}</p>
+                                <p class="clearfix my-line"></p>
+                                <div class="button-card">
+                                    <p style="float: right; margin-right: 10px;">{{ delaytask.dateStarted|date('Y-m-d') }}</p>
+                                </div>
+                            </div>
                     </a>
 
                 {% endfor %}
             </div>
+        </div>
 
-        </div>
-        <div class="navigation text-center">
-            {{ knp_pagination_render(tasks) }}
-        </div>
     {% endif %}
     {% if app.user == null %}
         <div style="text-align:center;"><a href="login" class="btn btn-info" style="text-align:center;"> Login</a>

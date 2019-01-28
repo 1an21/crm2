@@ -36,6 +36,9 @@ framework:
 twig:
     debug:            "%kernel.debug%"
     strict_variables: "%kernel.debug%"
+    form_themes:
+        - bootstrap_3_horizontal_layout.html.twig
+    cache: false
 
 # Doctrine Configuration
 doctrine:
@@ -60,6 +63,7 @@ doctrine:
             timediff: AppBundle\Dql\TimeDiff
             ifnull: AppBundle\Dql\IfNull
             date_format: AppBundle\Dql\DateFormat
+            UNIX_TIMESTAMP: AppBundle\Dql\UnixTimestamp
         mappings:
           gedmo_loggable:
               type: annotation

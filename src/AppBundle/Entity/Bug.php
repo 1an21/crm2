@@ -210,4 +210,3 @@ class Bug
         return $this->project;
     }
 }
-

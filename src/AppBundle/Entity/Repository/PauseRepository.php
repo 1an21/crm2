@@ -9,8 +9,9 @@ class PauseRepository extends \Doctrine\ORM\EntityRepository
         $query = $this->_em->createQuery(
             "
             UPDATE AppBundle:Pause p
-            SET p.dateFinished = CURRENT_TIME()
-            WHERE p.task = :id
+            SET p.dateFinished = CURRENT_TIME(), p.description = 'end'
+            WHERE p.task = :id order by p.id desc limit 1
+           
             "
         );
         $query->setParameter('id', $id);

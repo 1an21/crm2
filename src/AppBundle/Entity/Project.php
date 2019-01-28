@@ -2,7 +2,7 @@
 
 namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
-
+use Gedmo\Mapping\Annotation as Gedmo;
 /**
  * Project
  *
@@ -22,7 +22,7 @@ class Project
 
     /**
      * @var string
-     *
+     * @Gedmo\Slug(fields={"title"})
      * @ORM\Column(name="title", type="text", length=65535, nullable=false)
      */
     private $title;
@@ -63,4 +63,3 @@ class Project
 
 
 }
-

@@ -40,7 +40,7 @@ class PauseController extends FOSRestController implements ClassResourceInterfac
 
         $pause->setTask($task);
         $pause->setDateStarted(new \DateTime('now'));
-
+        $pause->setDescription('start');
         $em->persist($pause);
         $em->flush();
 
@@ -58,14 +58,14 @@ class PauseController extends FOSRestController implements ClassResourceInterfac
     public function finishPauseAction(Task $task)
     {
         $task_id = $task->getId();
-        $this->getPauseRepository()->finishQuery($task_id)->getResult();
+        $em = $this->getDoctrine()->getManager();
+        $RAW_QUERY = 'UPDATE pause SET date_finished = CURRENT_TIME(), description = "end"
+            WHERE task_id= '.$task_id.'  order by id desc limit 1';
 
+        $statement = $em->getConnection()->prepare($RAW_QUERY);
+        $statement->execute();
 
         return $this->redirectToRoute('all');
     }
 
-    private function getPauseRepository()
-    {
-        return $this->get('crv.doctrine_entity_repository.pause');
-    }
 }

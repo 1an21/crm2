@@ -33,9 +33,10 @@ class WikiController extends FOSRestController implements ClassResourceInterface
      */
     public function wikiAction( )
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $wiki=$this->getWikiRepository()->getWikiQuery()->getResult();
         return $this->render('Wiki/wiki.html.twig', [
-            'wiki'=>$wiki
+            'wiki'=>$wiki, 'projects'=>$projects
         ]);
     }
 
@@ -47,10 +48,11 @@ class WikiController extends FOSRestController implements ClassResourceInterface
      */
     public function allWikiAction(Project $project)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $project_id=$project->getId();
         $wiki=$this->getWikiRepository()->getWikiAllQuery($project_id)->getResult();
         return $this->render('Wiki/wiki-all.html.twig', [
-            'wiki'=>$wiki
+            'wiki'=>$wiki, 'projects'=>$projects
         ]);
     }
 
@@ -72,6 +74,7 @@ class WikiController extends FOSRestController implements ClassResourceInterface
      */
     public function postAction(Request $request)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $form = $this->createForm(WikiType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -93,7 +96,7 @@ class WikiController extends FOSRestController implements ClassResourceInterface
             return $this->redirectToRoute('wiki');
         }
         return $this->render('Wiki/create.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(), 'projects'=>$projects
         ]);
     }
 
@@ -119,6 +122,7 @@ class WikiController extends FOSRestController implements ClassResourceInterface
      */
     public function editAction(Request $request, Wiki $wiki)
     {
+        $projects= $this->getDoctrine()->getManager()->getRepository('AppBundle:Project')->findAll();
         $img=$wiki->getFile();
         if($img !== null) {
             $wiki->setFile(new File($this->getParameter('image_directory').'/'.$img));
@@ -132,7 +136,7 @@ class WikiController extends FOSRestController implements ClassResourceInterface
             return $this->redirectToRoute('wiki');
         }
         return $this->render('Wiki/edit.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(), 'projects'=>$projects
         ]);
     }
 

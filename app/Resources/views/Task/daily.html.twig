@@ -2,19 +2,21 @@
 
 {% block body %}
     <a href="{{ path('weekly')}}" class="btn btn-default btn-sm" >Weekly tasks</a>
-    <a href="{{ path('all-schema')}}" class="btn btn-default btn-sm" >All tasks (in times)</a>
+    {#<a href="{{ path('all-schema')}}" class="btn btn-default btn-sm" >All tasks (in times)</a>#}
 
 
     <table class="table table-hover table-responsive">
         <th style=" font-size: 24px;">Project</th>
         <th style=" font-size: 24px;">Employee</th>
         <th style=" font-size: 24px;">Total</th>
+        <th style=" font-size: 24px;">Day</th>
         {% for employee in employees %}
 
             <tr>
                 <td style=" font-size: 24px;"><a href="q/{{ employee.title }}">{{ employee.title }}</a></td>
                 <td style=" font-size: 24px;">{{ employee.names }} </td>
                 <td style=" font-size: 24px;">{{ employee.times }}</td>
+                <td style=" font-size: 24px;">{{ employee.finished }}</td>
             </tr>
         {% endfor %}
     </table>

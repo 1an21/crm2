@@ -4,52 +4,143 @@ namespace AppBundle\Entity\Repository;
 
 class TaskRepository extends \Doctrine\ORM\EntityRepository
 {
+
+    public function oneTaskDoneQuery($id)
+    {
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, t.status as status, t.image as image, t.description as description, pr.title as project, u.name as user, t.dateFinished as dateF,  t.dateStarted as dateSs, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(sum(TIMEDIFF(p.dateFinished, p.dateStarted)),0)) , '%H h %i m') as diff
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.id = :id
+            "
+        );
+        $query->setParameter('id', $id);
+        return $query;
+
+    }
+
+    public function getCommentsForBlog($taskId)
+    {
+
+        $query = $this->_em->createQuery(
+            "
+            SELECT com.id, com.comment, u.name as name
+            FROM AppBundle:Comment com
+            left join AppBundle:User u with u.id = com.user
+            WHERE com.task = :task_id
+          
+            "
+        );
+        $query->setParameter('task_id', $taskId);
+        return $query;
+    }
+
+    public function getCommentsCount($taskId)
+    {
+
+        $query = $this->_em->createQuery(
+            "
+            SELECT count(*)
+            FROM AppBundle:Comment com
+            WHERE com.task = :task_id
+          
+            "
+        );
+        $query->setParameter('task_id', $taskId);
+        return $query;
+    }
+
     public function searchQuery()
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')->where('e.status=0')
+        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')->select('e.id, e.title as title, e.dateStarted, e.dateFinished, e.description, pr.title as project, u.name as user, COALESCE(count(com.id),0) as cc')->leftJoin('AppBundle:Comment', 'com', 'WITH', 'com.task=e.id')->leftJoin('AppBundle:Project', 'pr', 'WITH', 'pr.id=e.project')->leftJoin('AppBundle:User', 'u', 'WITH', 'u.id=e.user')->where('e.status=0')->groupBy('e.id')
             ->orderBy('e.id', 'DESC');
     }
     public function searchByQuery($project)
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')
-            ->join('AppBundle:Project', 'pr', 'WITH', 'pr.id=e.project')
-            ->where('pr.title= :project')
-            ->andWhere('e.status=0')
-            ->orderBy('e.dateFinished', 'DESC')
-            ->setParameter('project', $project);
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, COALESCE(count(com.id),0) as cc, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 0 and pr.title = :project
+            Group by t.id
+            ORDER BY t.dateFinished DESC
+            "
+        );
+        $query->setParameter('project', $project);
+        return $query;
 
     }
 
     public function searchInQuery($project)
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')
-            ->join('AppBundle:Project', 'pr', 'WITH', 'pr.id=e.project')
-            ->where('pr.title= :project')
-            ->andWhere('e.status=2')
-            ->orderBy('e.dateFinished', 'DESC')
-            ->setParameter('project', $project);
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, COALESCE(count(com.id),0) as cc, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 2 and pr.title = :project
+            Group by t.id
+            ORDER BY t.dateFinished DESC
+            "
+        );
+        $query->setParameter('project', $project);
+        return $query;
 
     }
 
     public function searchDoneQuery($project)
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')
-            ->join('AppBundle:Project', 'pr', 'WITH', 'pr.id=e.project')
-            ->where('pr.title= :project')
-            ->andWhere('e.status=3')
-            ->orderBy('e.dateFinished', 'DESC')
-            ->setParameter('project', $project);
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, t.dateFinished as dateF, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(sum(TIMEDIFF(p.dateFinished, p.dateStarted)),0)) , '%H h %i m') as diff
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 3 and pr.title = :project
+            Group by t.id
+            ORDER BY t.dateFinished DESC
+            "
+        );
+        $query->setParameter('project', $project);
+        return $query;
 
     }
 
     public function searchDelayQuery($project)
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')
-            ->join('AppBundle:Project', 'pr', 'WITH', 'pr.id=e.project')
-            ->where('pr.title= :project')
-            ->andWhere('e.status=4')
-            ->orderBy('e.dateFinished', 'DESC')
-            ->setParameter('project', $project);
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, COALESCE(count(com.id),0) as cc, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 4 and pr.title = :project
+            Group by t.id
+            ORDER BY t.dateFinished DESC
+            "
+        );
+        $query->setParameter('project', $project);
+        return $query;
 
     }
 
@@ -86,13 +177,15 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.description as maximus, max(p.dateStarted) as dateS, p.description as dscr, COALESCE(count(com.id),0) as cc, max(p.dateFinished) as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
             FROM AppBundle:Task t
-            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with (p.task = t.id and p.id = (select max(pp.id) from AppBundle:Pause pp))
             left join AppBundle:Project pr with pr.id = t.project
             left join AppBundle:Priority pt with pt.id = t.priority
             left join AppBundle:User u with u.id = t.user
             WHERE t.status = 2
+            Group by t.id
             ORDER BY t.dateFinished DESC
             "
         );
@@ -102,12 +195,14 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(TIMEDIFF(p.dateFinished, p.dateStarted),0)) , '%H h %i m') as diff
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, t.dateFinished as dateF, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(sum(TIMEDIFF(p.dateFinished, p.dateStarted)),0)) , '%H h %i m') as diff
             FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
             left join AppBundle:Pause p with p.task = t.id
             left join AppBundle:Project pr with pr.id = t.project
             left join AppBundle:User u with u.id = t.user
             WHERE t.status = 3
+            Group by t.id
             ORDER BY t.dateFinished DESC
             "
         );
@@ -118,10 +213,15 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT p
-            FROM AppBundle:Task p
-            WHERE p.status = 4
-            ORDER BY p.dateFinished DESC
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, t.dateFinished as dateF, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(TIMEDIFF(p.dateFinished, p.dateStarted),0)) , '%H h %i m') as diff
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 4
+            Group by t.id
+            ORDER BY t.dateFinished DESC
             "
         );
         return $query;
@@ -240,7 +340,7 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT u.name as names, SUBSTRING(SEC_TO_TIME(SUM(TIME_TO_SEC(p.dateFinished) - TIME_TO_SEC(p.dateStarted))),1,5) as times
+            SELECT u.name as names, SUBSTRING(SEC_TO_TIME(SUM(TIME_TO_SEC(p.dateFinished) - TIME_TO_SEC(p.dateStarted))),1,5) as times , date_format(p.dateFinished, '%M %d') as finished
             FROM AppBundle:Task p
             JOIN AppBundle:Project pr WITH pr.id=p.project
             JOIN AppBundle:User u WITH u.id=p.user
@@ -258,11 +358,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT u.name as names, pr.title as title, SUBSTRING(SEC_TO_TIME(SUM(TIME_TO_SEC(p.dateFinished) - TIME_TO_SEC(p.dateStarted))),1,5) as times
+            SELECT u.name as names, pr.title as title, DATE_FORMAT(TIMEDIFF(TIMEDIFF(p.dateFinished, p.dateStarted), IFNULL(sum(TIMEDIFF(pa.dateFinished, pa.dateStarted)),0)) , '%H h %i m') as times, date_format(p.dateFinished, '%M %d') as finished
             FROM AppBundle:Task p
             JOIN AppBundle:Project pr WITH pr.id=p.project
             JOIN AppBundle:User u WITH u.id=p.user
-            where p.dateStarted is not null
+            left join AppBundle:Pause pa with pa.task = p.id
+            where p.dateStarted is not null and p.status = '3'
             GROUP BY p.user, p.project
             
             "
@@ -275,12 +376,13 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT u.name as names, pr.title as title, SUBSTRING(SEC_TO_TIME(SUM(TIME_TO_SEC(p.dateFinished) - TIME_TO_SEC(p.dateStarted))),1,5) as times
-            FROM AppBundle:Task p
-            JOIN AppBundle:Project pr WITH pr.id=p.project
-            JOIN AppBundle:User u WITH u.id=p.user
-            Where p.dateFinished >= CURRENT_DATE() and (p.dateStarted is not null)
-            GROUP BY p.user, p.project
+                SELECT u.name as names, pr.title as title, DATE_FORMAT(TIMEDIFF(TIMEDIFF(p.dateFinished, p.dateStarted), IFNULL(sum(TIMEDIFF(pa.dateFinished, pa.dateStarted)),0)) , '%H h %i m') as times,  date_format(p.dateFinished, '%M %d') as finished
+                FROM AppBundle:Task p
+                JOIN AppBundle:Project pr WITH pr.id=p.project
+                left join AppBundle:Pause pa with pa.task = p.id
+                JOIN AppBundle:User u WITH u.id=p.user
+                Where p.dateFinished >= CURRENT_DATE() and (p.dateStarted is not null) and p.status = '3'
+                GROUP BY p.user, p.project
             
             "
         );
@@ -291,11 +393,12 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT u.name as names, pr.title as title, SUBSTRING(SEC_TO_TIME(SUM(TIME_TO_SEC(p.dateFinished) - TIME_TO_SEC(p.dateStarted))),1,5) as times
+            SELECT u.name as names, pr.title as title, DATE_FORMAT(TIMEDIFF(TIMEDIFF(p.dateFinished, p.dateStarted), IFNULL(sum(TIMEDIFF(pa.dateFinished, pa.dateStarted)),0)) , '%H h %i m') as times, date_format(p.dateFinished, '%M %d') as finished
             FROM AppBundle:Task p
             JOIN AppBundle:Project pr WITH pr.id=p.project
             JOIN AppBundle:User u WITH u.id=p.user
-            Where YEARWEEK(p.dateFinished,0) = YEARWEEK(CURRENT_TIMESTAMP(),0) and ( p.dateStarted is not null)
+            left join AppBundle:Pause pa with pa.task = p.id
+            Where YEARWEEK(p.dateFinished,0) = YEARWEEK(CURRENT_TIMESTAMP(),0) and ( p.dateStarted is not null) and p.status = '3'
             GROUP BY p.user, p.project
             
             "
@@ -305,14 +408,43 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
         return $query;
     }
 
+    public function getTimeByDateAndEmployeeQuery($project)
+    {
+        $query = $this->_em->createQuery(
+            "
+            SELECT u.name as names, pr.title as title, SUBSTRING(SEC_TO_TIME(SUM(UNIX_TIMESTAMP(p.dateFinished) - UNIX_TIMESTAMP(p.dateStarted))),1,5) as times, date_format(p.dateFinished, '%M %d') as finished
+            FROM AppBundle:Task p
+            JOIN AppBundle:Project pr WITH pr.id=p.project
+            JOIN AppBundle:User u WITH u.id=p.user
+            Where p.dateStarted is not null and pr.title = :project and p.status = '3'
+            GROUP BY p.user
+            
+            "
+        );
+        $query->setParameter('project', $project);
+
+
+        return $query;
+    }
+
     public function findByEmployeeQuery($id)
     {
-        return $this->_em->getRepository('AppBundle:Task')->createQueryBuilder('e')
-            ->where('e.user= :id')
-            ->andWhere('e.status=0')
-            ->orderBy('e.dateFinished', 'DESC')
-            ->setParameter('id', $id);
-
+        $query = $this->_em->createQuery(
+            "
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, COALESCE(count(com.id),0) as cc, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 0 and u.id = :id
+            Group by t.id
+            ORDER BY t.dateFinished DESC
+            "
+        );
+        $query->setParameter('id', $id);
+        return $query;
     }
 
 
@@ -320,10 +452,16 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT p
-            FROM AppBundle:Task p
-            WHERE p.user = :id AND p.status=2
-            ORDER BY p.dateFinished DESC
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, p.dateStarted as dateS, COALESCE(count(com.id),0) as cc, p.dateFinished as dateF, pt.title as priority, t.dateStarted as dateStarted, t.dateFinished as dateFinished
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:Priority pt with pt.id = t.priority
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 2 and u.id = :id
+            Group by t.id
+            ORDER BY t.dateFinished DESC
             "
         );
         $query->setParameter('id', $id);
@@ -334,10 +472,15 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT p
-            FROM AppBundle:Task p
-            WHERE p.user = :id AND p.status=3
-            ORDER BY p.dateFinished DESC
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, t.dateFinished as dateF, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(sum(TIMEDIFF(p.dateFinished, p.dateStarted)),0)) , '%H h %i m') as diff
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 3 and u.id = :id
+            Group by t.id
+            ORDER BY t.dateFinished DESC
             "
         );
         $query->setParameter('id', $id);
@@ -348,10 +491,15 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
     {
         $query = $this->_em->createQuery(
             "
-            SELECT p
-            FROM AppBundle:Task p
-            WHERE p.user = :id AND p.status=4
-            ORDER BY p.dateFinished DESC
+            SELECT t.id as id, t.title as title, pr.title as project, u.name as user, t.dateFinished as dateF, COALESCE(count(com.id),0) as cc,DATE_FORMAT(TIMEDIFF(TIMEDIFF(t.dateFinished, t.dateStarted), IFNULL(TIMEDIFF(p.dateFinished, p.dateStarted),0)) , '%H h %i m') as diff
+            FROM AppBundle:Task t
+            left join AppBundle:Comment com with com.task = t.id
+            left join AppBundle:Pause p with p.task = t.id
+            left join AppBundle:Project pr with pr.id = t.project
+            left join AppBundle:User u with u.id = t.user
+            WHERE t.status = 4 and u.id = :id
+            Group by t.id
+            ORDER BY t.dateFinished DESC
             "
         );
         $query->setParameter('id', $id);
@@ -369,6 +517,20 @@ class TaskRepository extends \Doctrine\ORM\EntityRepository
             "
         );
         $query->setParameter('id', $id);
+        return $query;
+    }
+
+    public function getEmailWhoCreatedQuery($who)
+    {
+        $query = $this->_em->createQuery(
+            "
+            SELECT distinct u.email
+            FROM AppBundle:User u
+            Left Join AppBundle:Task p WITH p.whoCreate = u.id
+            where p.whoCreate = :who
+            "
+        );
+        $query->setParameter('who', $who);
         return $query;
     }
 }

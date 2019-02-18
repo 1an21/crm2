@@ -1,17 +1,19 @@
+Task Manager with timer (Symfony3)
+
+Includes: pauses, priority, who create, comments, email notifications, wiki, projects
+
+Statistics by project, employee, per day, per week
 
 For use:
 
 `php bin/console doctrine:database:create`
 
-`php bin/console doctrine:migration:migrate`
-
 `php bin/console doctrine:schema:update --force`
-
-`php bin/console doctrine:fixtures:load --purge-with-truncate `
 
 URL:
 
-/ - tree list
+/ - dashboard
 
-/all - list with CRUD (required auth)
+/register
 
+/login

@@ -17,3 +17,5 @@ URL:
 /register
 
 /login
+
+![dashboard](https://travel.502f.icu/images/admin-dashboard.png)
